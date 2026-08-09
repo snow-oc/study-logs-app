@@ -1,6 +1,19 @@
 import { useEffect, useState } from "react";
+import { supabase } from "./supabaseClient.jsx";
 
 export const App = () => {
+
+  // データの取得
+  const fetchRecords = async () => {
+    const { data, error } = await supabase
+      .from("study-record")
+      .select('*')
+    console.log(data);
+  }
+
+  useEffect(() => {
+    fetchRecords();
+  }, []);
 
   // レコード
   const [records, setRecords] = useState([]);
@@ -13,7 +26,6 @@ export const App = () => {
 
   // 合計時間
   let totalTime = 0;
-  console.log(totalTime);
   useEffect(() => {
     records.forEach((record) => {
       totalTime += Number(record.time);

@@ -1,5 +1,8 @@
 import { useEffect, useState } from "react";
 import { supabase } from "./supabaseClient.jsx";
+import { Loading } from "./components/Loading.jsx";
+import { memo } from "react";
+import { useMemo } from "react";
 
 export const App = () => {
 
@@ -31,13 +34,13 @@ export const App = () => {
   const [isLoading, setIsLoading] = useState(false);
 
   // 合計時間
-  let totalTime = 0;
-  useEffect(() => {
+  const totalTime = useMemo(() => {
+    let sum = 0;
     records.forEach((record) => {
-      totalTime += Number(record.time);
+      sum += Number(record.time);
     });
+    return sum;
   }, [records]);
-
 
   // エラーフラグ
   const [isError, setIsError] = useState(false);
@@ -63,15 +66,23 @@ export const App = () => {
 
   }
 
+  const handleClickDetail = (e) => {
+    setDetail(e.target.value);
+  }
+
+  const handleClickTime = (e) => {
+    setTime(e.target.value);
+  }
+
   return (
     <>
       <div>
         <label>学習内容</label>
-        <input type="text" value={detail} onChange={e => setDetail(e.target.value)} />
+        <input type="text" value={detail} onChange={handleClickDetail} />
       </div>
       <div>
         <label>学習時間</label>
-        <input type="number" value={time} onChange={e => setTime(e.target.value)}/>
+        <input type="number" value={time} onChange={handleClickTime}/>
       </div>
       <div>
         入力されている学習内容: {detail}
@@ -89,16 +100,7 @@ export const App = () => {
         登録データ
       </div>
       <div>
-        {console.log(isLoading)}
-        {isLoading ? <div>ローディング中</div> :
-          records.map((record) => {
-            return (
-              <div key={record.id}>
-                {record.title}: {record.time}(h)
-              </div>
-            );
-          })
-        }
+        {isLoading ? <Loading /> : <RecordList records={records} />}
       </div>
       <div>
         合計時間: {totalTime}(h)
@@ -108,3 +110,16 @@ export const App = () => {
   );
 
 };
+
+const RecordList = memo((props) => {
+  const { records } = props;
+  return (
+    records.map((record, index) => {
+      return (
+        <div key={index}>
+          {record.title}: {record.time}(h)
+        </div>
+      );
+    })
+  );
+})

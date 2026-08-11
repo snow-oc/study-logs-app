@@ -3,6 +3,7 @@ import { supabase } from "./supabaseClient.jsx";
 import { Loading } from "./components/Loading.jsx";
 import { memo } from "react";
 import { useMemo } from "react";
+import "./App.css";
 
 export const App = () => {
 
@@ -75,38 +76,37 @@ export const App = () => {
   }
 
   return (
-    <>
-      <div>
+    <div className="app-container">
+      <h1 className="app-title">学習記録アプリ</h1>
+
+      <div className="form-group">
         <label>学習内容</label>
-        <input type="text" value={detail} onChange={handleClickDetail} />
+        <input className="input-field" type="text" value={detail} onChange={handleClickDetail} placeholder="例: Reactの学習" />
+        <div className="preview-text">入力中: {detail}</div>
       </div>
-      <div>
-        <label>学習時間</label>
-        <input type="number" value={time} onChange={handleClickTime}/>
+
+      <div className="form-group">
+        <label>学習時間 (時間)</label>
+        <input className="input-field" type="number" value={time} onChange={handleClickTime}/>
+        <div className="preview-text">入力中: {time} 時間</div>
       </div>
-      <div>
-        入力されている学習内容: {detail}
+
+      <button className="btn-primary" onClick={onClickInsert}>登録</button>
+
+      <div className="error-message">
+        {isError ? "⚠️ 入力されていない項目があります" : ""}
       </div>
-      <div>
-        入力されている時間: {time}時間
-      </div>
-      <div>
-        <button onClick={onClickInsert}>登録</button>
-      </div>
-      <div>
-        {isError ? "入力されていない項目があります" : ""}
-      </div>
-      <div>
-        登録データ
-      </div>
+
+      <div className="section-title">登録データ</div>
+
       <div>
         {isLoading ? <Loading /> : <RecordList records={records} />}
       </div>
-      <div>
-        合計時間: {totalTime}(h)
-      </div>
 
-    </>
+      <div className="total-container">
+        合計時間: <span className="total-time-badge">{totalTime}</span> 時間
+      </div>
+    </div>
   );
 
 };
@@ -114,12 +114,15 @@ export const App = () => {
 const RecordList = memo((props) => {
   const { records } = props;
   return (
-    records.map((record, index) => {
-      return (
-        <div key={index}>
-          {record.title}: {record.time}(h)
-        </div>
-      );
-    })
+    <div className="record-list">
+      {records.map((record, index) => {
+        return (
+          <div className="record-item" key={index}>
+            <span className="record-title">{record.title}</span>
+            <span className="record-time">{record.time} 時間</span>
+          </div>
+        );
+      })}
+    </div>
   );
-})
+});

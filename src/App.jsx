@@ -5,10 +5,16 @@ export const App = () => {
 
   // データの取得
   const fetchRecords = async () => {
+    setIsLoading(true);
     const { data, error } = await supabase
       .from("study-record")
-      .select('*')
-    console.log(data);
+      .select('id, title, time');
+    if (error) {
+      console.log(error);
+    } else {
+      setRecords(data);
+    }
+    setIsLoading(false);
   }
 
   useEffect(() => {
@@ -17,12 +23,12 @@ export const App = () => {
 
   // レコード
   const [records, setRecords] = useState([]);
-
   // 学習内容
   const [detail, setDetail] = useState("");
   // 学習時間
   const [time, setTime] = useState(0);
-
+  // ローディング状態
+  const [isLoading, setIsLoading] = useState(false);
 
   // 合計時間
   let totalTime = 0;
@@ -83,13 +89,16 @@ export const App = () => {
         登録データ
       </div>
       <div>
-        {records.map((record, index) => {
-          return (
-            <div key={index}>
-              {record.title}: {record.time}(h)
-            </div>
-          );
-        })}
+        {console.log(isLoading)}
+        {isLoading ? <div>ローディング中</div> :
+          records.map((record) => {
+            return (
+              <div key={record.id}>
+                {record.title}: {record.time}(h)
+              </div>
+            );
+          })
+        }
       </div>
       <div>
         合計時間: {totalTime}(h)

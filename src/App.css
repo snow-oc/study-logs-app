@@ -1,6 +1,6 @@
 /* 全体コンテナ */
 .app-container {
-  max-width: 480px;
+  max-width: 540px;
   margin: 40px auto;
   padding: 24px;
   background-color: #ffffff;
@@ -124,6 +124,30 @@
   border-radius: 6px;
   font-size: 0.85rem;
 }
+
+.record-action {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-delete {
+  padding: 4px 10px;
+  background-color: #ef4444;
+  color: #ffffff;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.btn-delete:hover {
+  background-color: #dc2626;
+}
+
+
 
 /* 合計表示 */
 .total-container {

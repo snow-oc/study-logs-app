@@ -4,6 +4,7 @@ import { Loading } from "./components/Loading.jsx";
 import { memo } from "react";
 import { useMemo } from "react";
 import "./App.css";
+import { useCallback } from "react";
 
 export const App = () => {
 
@@ -21,14 +22,23 @@ export const App = () => {
 
   // データの登録
   const insertRecord = async (record) => {
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from("study-record")
       .insert({ title: record.title, time: record.time });
 
     if (error) {
       console.log(error);
-    } else {
-      console.log(data);
+    }
+  }
+
+  // データの削除
+  const deleteRecord = async (id) => {
+    const { error } = await supabase
+      .from("study-record")
+      .delete()
+      .eq("id", id);
+    if (error) {
+      console.log(error);
     }
   }
 
@@ -98,6 +108,17 @@ export const App = () => {
 
   }
 
+  // 削除ボタン押下
+  const onClickDelete = useCallback(async (id) => {
+    setIsLoading(true);
+    try {
+      await deleteRecord(id);
+      await fetchRecords();
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
   const handleClickDetail = (e) => {
     setDetail(e.target.value);
   }
@@ -131,7 +152,7 @@ export const App = () => {
       <div className="section-title">登録データ</div>
 
       <div>
-        {isLoading ? <Loading /> : <RecordList records={records} />}
+        {isLoading ? <Loading /> : <RecordList records={records} onClickDelete={onClickDelete} />}
       </div>
 
       <div className="total-container">
@@ -143,14 +164,17 @@ export const App = () => {
 };
 
 const RecordList = memo((props) => {
-  const { records } = props;
+  const { records, onClickDelete } = props;
   return (
     <div className="record-list">
-      {records.map((record, index) => {
+      {records.map((record) => {
         return (
-          <div className="record-item" key={index}>
+          <div className="record-item" key={record.id}>
             <span className="record-title">{record.title}</span>
-            <span className="record-time">{record.time} 時間</span>
+            <div className="record-action">
+              <span className="record-time">{record.time} 時間</span>
+              <button className="btn-delete" onClick={() => onClickDelete(record.id)}>削除</button>
+            </div>
           </div>
         );
       })}

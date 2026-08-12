@@ -9,7 +9,6 @@ export const App = () => {
 
   // データの取得
   const fetchRecords = async () => {
-    setIsLoading(true);
     const { data, error } = await supabase
       .from("study-record")
       .select('id, title, time');
@@ -18,11 +17,32 @@ export const App = () => {
     } else {
       setRecords(data);
     }
-    setIsLoading(false);
+  }
+
+  // データの登録
+  const insertRecord = async (record) => {
+    const { data, error } = await supabase
+      .from("study-record")
+      .insert({ title: record.title, time: record.time });
+
+    if (error) {
+      console.log(error);
+    } else {
+      console.log(data);
+    }
   }
 
   useEffect(() => {
-    fetchRecords();
+    const loadData = async () => {
+      setIsLoading(true);
+      try {
+        await fetchRecords();
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    loadData();
+
   }, []);
 
   // レコード
@@ -46,7 +66,8 @@ export const App = () => {
   // エラーフラグ
   const [isError, setIsError] = useState(false);
 
-  const onClickInsert = () => {
+  // 登録ボタン押下
+  const onClickInsert = async () => {
 
     if (detail === "" || time === 0) {
       setIsError(true);
@@ -59,9 +80,19 @@ export const App = () => {
       title: detail,
       time: time
     };
-    const newRecord = [...records, record];
 
-    setRecords(newRecord);
+
+    setIsLoading(true);
+    try {
+      // データ登録
+      await insertRecord(record);
+      // データ再取得
+      await fetchRecords();
+    } finally {
+      setIsLoading(false);
+    }
+
+    // 入力初期化
     setDetail("");
     setTime(0);
 

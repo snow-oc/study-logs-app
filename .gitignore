@@ -24,3 +24,8 @@ dist-ssr
 *.sw?
 
 .env.local
+
+# Firebaseの一時キャッシュやログファイルを除外
+.firebase/
+firebase-debug.log
+firebase-debug.*.log

@@ -1,0 +1,12 @@
+name: Hello World Workflow
+
+# いつ動かすか
+on:
+  workflow_dispatch:
+
+# 何を実行するか
+jobs:
+  say-hello:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Hello, World!"

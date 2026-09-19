@@ -1,10 +1,10 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { App } from './App.jsx';
-import { supabase } from './supabaseClient.jsx';
+import { App } from './App';
+import { supabase } from './supabaseClient';
 
 // Supabase の通信をまるごとダミーに差し替える
-jest.mock('./supabaseClient.jsx', () => ({
+jest.mock('./supabaseClient', () => ({
   supabase: {
     from: jest.fn(),
   }
@@ -12,7 +12,7 @@ jest.mock('./supabaseClient.jsx', () => ({
 
 test('タイトルが表示されていること', () => {
 
-  supabase.from.mockReturnValue({
+  (supabase.from as jest.Mock).mockReturnValue({
     select: jest.fn().mockResolvedValue({ data: [], error: null}),
   });
 
@@ -23,7 +23,7 @@ test('タイトルが表示されていること', () => {
 
 test('フォームに学習内容と時間を入力して登録ボタンを押すと新たに記録が追加されること', async () => {
 
-  supabase.from.mockReturnValue({
+  (supabase.from as jest.Mock).mockReturnValue({
     select: jest.fn().mockResolvedValueOnce({ data: [], error: null })
       .mockResolvedValueOnce({ data: [{id: '1', title: 'テスト', time: '5'}], error: null }),
     insert: jest.fn().mockResolvedValue({ error: null}),
@@ -46,7 +46,7 @@ test('フォームに学習内容と時間を入力して登録ボタンを押�
 
 test('削除ボタンを押すと学習記録が削除される', async () => {
 
-  supabase.from.mockReturnValue({
+  (supabase.from as jest.Mock).mockReturnValue({
     select: jest.fn().mockResolvedValueOnce({ data: [{id: '1', title: 'テスト', time: '5'}], error: null })
       .mockResolvedValueOnce({ data: [], error: null}),
     delete: jest.fn(() => ({
@@ -65,7 +65,7 @@ test('削除ボタンを押すと学習記録が削除される', async () => {
 });
 
 test('入力をしないで登録を押すとエラーが表示されること', async () => {
-  supabase.from.mockReturnValue({
+  (supabase.from as jest.Mock).mockReturnValue({
     select: jest.fn().mockResolvedValue({ data: [], error: null}),
   });
 

@@ -1,12 +1,33 @@
-import { useEffect, useState } from "react";
-import { supabase } from "./supabaseClient.jsx";
-import { Loading } from "./components/Loading.jsx";
+import { useEffect, useState, type ChangeEvent } from "react";
+import { supabase } from "./supabaseClient";
+import { Loading } from "./components/Loading";
 import { memo } from "react";
 import { useMemo } from "react";
 import "./App.css";
 import { useCallback } from "react";
+import type { StudyRecord } from "./types/db/study-record";
 
 export const App = () => {
+
+  // レコード
+  const [records, setRecords] = useState<StudyRecord[]>([]);
+  // 学習内容
+  const [detail, setDetail] = useState("");
+  // 学習時間
+  const [time, setTime] = useState(0);
+  // ローディング状態
+  const [isLoading, setIsLoading] = useState(false);
+  // エラーフラグ
+  const [isError, setIsError] = useState(false);
+
+  // 合計時間
+  const totalTime = useMemo(() => {
+    let sum = 0;
+    records.forEach((record) => {
+      sum += Number(record.time);
+    });
+    return sum;
+  }, [records]);
 
   // データの取得
   const fetchRecords = async () => {
@@ -16,12 +37,12 @@ export const App = () => {
     if (error) {
       console.log(error);
     } else {
-      setRecords(data);
+      setRecords(data as StudyRecord[]);
     }
   }
 
   // データの登録
-  const insertRecord = async (record) => {
+  const insertRecord = async (record: Pick<StudyRecord, "title" | "time">) => {
     const { error } = await supabase
       .from("study-record")
       .insert({ title: record.title, time: record.time });
@@ -32,7 +53,7 @@ export const App = () => {
   }
 
   // データの削除
-  const deleteRecord = async (id) => {
+  const deleteRecord = async (id: string) => {
     const { error } = await supabase
       .from("study-record")
       .delete()
@@ -54,27 +75,6 @@ export const App = () => {
     loadData();
 
   }, []);
-
-  // レコード
-  const [records, setRecords] = useState([]);
-  // 学習内容
-  const [detail, setDetail] = useState("");
-  // 学習時間
-  const [time, setTime] = useState(0);
-  // ローディング状態
-  const [isLoading, setIsLoading] = useState(false);
-
-  // 合計時間
-  const totalTime = useMemo(() => {
-    let sum = 0;
-    records.forEach((record) => {
-      sum += Number(record.time);
-    });
-    return sum;
-  }, [records]);
-
-  // エラーフラグ
-  const [isError, setIsError] = useState(false);
 
   // 登録ボタン押下
   const onClickInsert = async () => {
@@ -109,7 +109,7 @@ export const App = () => {
   }
 
   // 削除ボタン押下
-  const onClickDelete = useCallback(async (id) => {
+  const onClickDelete = useCallback(async (id: string) => {
     setIsLoading(true);
     try {
       await deleteRecord(id);
@@ -119,12 +119,12 @@ export const App = () => {
     }
   }, []);
 
-  const handleClickDetail = (e) => {
+  const handleClickDetail = (e: ChangeEvent<HTMLInputElement>) => {
     setDetail(e.target.value);
   }
 
-  const handleClickTime = (e) => {
-    setTime(e.target.value);
+  const handleClickTime = (e: ChangeEvent<HTMLInputElement>) => {
+    setTime(Number(e.target.value));
   }
 
   return (
@@ -163,7 +163,12 @@ export const App = () => {
 
 };
 
-const RecordList = memo((props) => {
+type Props = {
+  records: StudyRecord[];
+  onClickDelete: (id: string) => void;
+}
+
+const RecordList = memo((props: Props) => {
   const { records, onClickDelete } = props;
   return (
     <div className="record-list">

@@ -1,7 +1,13 @@
-import styled from "./Loading.module.css";
+import { HStack, Spinner, Text } from "@chakra-ui/react";
 
 export const Loading = () => {
   return (
-      <div className={styled.textLoader}>Loading...</div>
+      <HStack colorPalette="blue">
+        <Text color="colorPalette.700">Loading...</Text>
+        <Spinner
+          size="md"
+          color="blue"
+        />
+      </HStack>
   );
 }

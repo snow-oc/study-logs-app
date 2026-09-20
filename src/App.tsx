@@ -3,9 +3,11 @@ import { supabase } from "./supabaseClient";
 import { Loading } from "./components/Loading";
 import { memo } from "react";
 import { useMemo } from "react";
-import "./App.css";
 import { useCallback } from "react";
 import type { StudyRecord } from "./types/db/study-record";
+import { PrimaryButton } from "./components/atoms/button/PrimaryButton";
+import { Box, Container, Field, Flex, Heading, HStack, Input, Stack, Text } from "@chakra-ui/react";
+import { DangerButton } from "./components/atoms/button/DangerButton";
 
 export const App = () => {
 
@@ -128,37 +130,48 @@ export const App = () => {
   }
 
   return (
-    <div className="app-container">
-      <h1 className="app-title">学習記録アプリ</h1>
+    <Container maxW="2xl" my={6} p={6} bg="white" borderRadius="xl" boxShadow="md" borderWidth="1px">
+      <Heading as="h1" fontSize="xl" textAlign="center" mb={4}>
+        学習記録アプリ
+      </Heading>
 
-      <div className="form-group">
-        <label htmlFor="detail">学習内容</label>
-        <input id="detail" className="input-field" type="text" value={detail} onChange={handleClickDetail} placeholder="例: Reactの学習" />
-        <div className="preview-text">入力中: {detail}</div>
-      </div>
+      <Stack gap={4}>
+        <Field.Root>
+          <Field.Label htmlFor="detail">学習内容</Field.Label>
+          <Input id="detail" type="text" value={detail} onChange={handleClickDetail} placeholder="例: Reactの学習"/>
+          <Text fontSize="sm" color="gray.500">入力中: {detail}</Text>
+        </Field.Root>
+        <Field.Root>
+          <Field.Label htmlFor="time">学習時間 (時間)</Field.Label>
+          <Input id="time" type="number" value={time} onChange={handleClickTime} />
+          <Text fontSize="sm" color="gray.500">入力中: {time} 時間</Text>
+        </Field.Root>
+        <PrimaryButton w="100px" p="10px" fontWeight="semibold" fontSize="0.95rem" onClick={onClickInsert}>登録</PrimaryButton>
+      </Stack>
 
-      <div className="form-group">
-        <label htmlFor="time">学習時間 (時間)</label>
-        <input id="time" className="input-field" type="number" value={time} onChange={handleClickTime}/>
-        <div className="preview-text">入力中: {time} 時間</div>
-      </div>
-
-      <button className="btn-primary" onClick={onClickInsert}>登録</button>
-
-      <div className="error-message">
+      <Box color="red.500" fontSize="sm" fontWeight="medium" minH="1.5rem" mt={2}>
         {isError ? "⚠️ 入力されていない項目があります" : ""}
-      </div>
+      </Box>
 
-      <div className="section-title">登録データ</div>
+      <Heading as="h2" size="md" mt={6} mb={3} pb={2} borderBottom="2px solid" borderColor="gray.100">
+        登録データ
+      </Heading>
 
-      <div>
+      <Box>
         {isLoading ? <Loading /> : <RecordList records={records} onClickDelete={onClickDelete} />}
-      </div>
+      </Box>
 
-      <div className="total-container">
-        合計時間: <span className="total-time-badge">{totalTime}</span> 時間
-      </div>
-    </div>
+      <Box
+        textAlign="right"
+        mt={5}
+        pt={4}
+        borderTop="2px dashed"
+        borderColor="gray.200"
+        fontWeight="bold"
+      >
+        合計時間: <Text as="span" fontSize="lg" color="#2563eb">{totalTime}</Text> 時間
+      </Box>
+    </Container>
   );
 
 };
@@ -171,18 +184,36 @@ type Props = {
 const RecordList = memo((props: Props) => {
   const { records, onClickDelete } = props;
   return (
-    <div className="record-list">
+    <Stack gap={2}>
       {records.map((record) => {
         return (
-          <div className="record-item" key={record.id}>
-            <span className="record-title">{record.title}</span>
-            <div className="record-action">
-              <span className="record-time">{record.time} 時間</span>
-              <button className="btn-delete" onClick={() => onClickDelete(record.id)}>削除</button>
-            </div>
-          </div>
+          <Flex
+            key={record.id}
+            justify="space-between"
+            align="center"
+            p={3}
+            borderWidth="1px"
+            borderRadius="md"
+            bg="gray.50"
+            >
+            <Text fontWeight="medium">{record.title}</Text>
+            <HStack gap={3} align="center">
+              <Text
+                bg="blue.50"
+                color="blue.600"
+                px={2.5}
+                py={1}
+                borderRadius="md"
+                fontWeight="semibold"
+                fontSize="sm"
+              >
+                {record.time} 時間
+              </Text>
+              <DangerButton px="10px" py="4px" fontSize="0.8rem" fontWeight="semibold" onClick={() => onClickDelete(record.id)}>削除</DangerButton>
+            </HStack>
+          </Flex>
         );
       })}
-    </div>
+    </Stack>
   );
 });

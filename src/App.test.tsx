@@ -1,5 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { Provider } from "@/components/ui/provider";
 import { App } from './App';
 import { supabase } from './supabaseClient';
 
@@ -16,7 +17,11 @@ test('タイトルが表示されていること', () => {
     select: jest.fn().mockResolvedValue({ data: [], error: null}),
   });
 
-  render(<App />);
+  render(
+    <Provider>
+      <App />
+    </Provider>
+  );
 
   expect(screen.getByText('学習記録アプリ')).toBeInTheDocument();
 });
@@ -29,7 +34,11 @@ test('フォームに学習内容と時間を入力して登録ボタンを押�
     insert: jest.fn().mockResolvedValue({ error: null}),
   });
 
-  render(<App />);
+  render(
+    <Provider>
+      <App />
+    </Provider>
+  );
 
   const detailField = screen.getByLabelText('学習内容');
   const timeField = screen.getByLabelText('学習時間 (時間)');
@@ -54,7 +63,11 @@ test('削除ボタンを押すと学習記録が削除される', async () => {
     })),
   });
 
-  render(<App />);
+  render(
+    <Provider>
+      <App />
+    </Provider>
+  );
 
   const button = await screen.findByRole('button', { name: '削除' });
 
@@ -69,7 +82,11 @@ test('入力をしないで登録を押すとエラーが表示されること',
     select: jest.fn().mockResolvedValue({ data: [], error: null}),
   });
 
-  render(<App />);
+  render(
+    <Provider>
+      <App />
+    </Provider>
+  );
 
   const button = screen.getByRole('button', { name: '登録' });
 

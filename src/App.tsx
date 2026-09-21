@@ -1,4 +1,4 @@
-import { useEffect, useState, type ChangeEvent } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "./supabaseClient";
 import { Loading } from "./components/Loading";
 import { memo } from "react";
@@ -8,19 +8,27 @@ import { StudyRecord } from "./types/db/study-record";
 import { PrimaryButton } from "./components/atoms/button/PrimaryButton";
 import { Box, Container, Field, Flex, Heading, HStack, Input, Stack, Text } from "@chakra-ui/react";
 import { DangerButton } from "./components/atoms/button/DangerButton";
+import { useForm } from "react-hook-form";
+import { validateStudyTime } from "./utils/appValidation";
+
+type FormInputs = {
+  detail: string;
+  time: number;
+};
 
 export const App = () => {
 
   // レコード
   const [records, setRecords] = useState<StudyRecord[]>([]);
-  // 学習内容
-  const [detail, setDetail] = useState("");
-  // 学習時間
-  const [time, setTime] = useState(0);
   // ローディング状態
   const [isLoading, setIsLoading] = useState(false);
-  // エラーフラグ
-  const [isError, setIsError] = useState(false);
+  // 入力フォーム
+  const { register, handleSubmit, reset, formState: { errors }, watch } = useForm<FormInputs>({
+    defaultValues: {
+      detail: "",
+      time: 0,
+    }
+  });
 
   // 合計時間
   const totalTime = useMemo(() => {
@@ -82,34 +90,18 @@ export const App = () => {
   }, []);
 
   // 登録ボタン押下
-  const onClickInsert = async () => {
-
-    if (detail === "" || time === 0) {
-      setIsError(true);
-      return;
-    } else {
-      setIsError(false);
-    }
-
-    const record = {
-      title: detail,
-      time: time
-    };
-
+  const onClickInsert = async (data: any) => {
 
     setIsLoading(true);
     try {
       // データ登録
-      await insertRecord(record);
+      await insertRecord({title: data.detail, time: data.time});
       // データ再取得
       await fetchRecords();
+      reset({detail: "", time: 0});
     } finally {
       setIsLoading(false);
     }
-
-    // 入力初期化
-    setDetail("");
-    setTime(0);
 
   }
 
@@ -124,14 +116,6 @@ export const App = () => {
     }
   }, []);
 
-  const handleClickDetail = (e: ChangeEvent<HTMLInputElement>) => {
-    setDetail(e.target.value);
-  }
-
-  const handleClickTime = (e: ChangeEvent<HTMLInputElement>) => {
-    setTime(Number(e.target.value));
-  }
-
   return (
     <Container maxW="2xl" my={6} p={6} bg="white" borderRadius="xl" boxShadow="md" borderWidth="1px">
       <Heading as="h1" fontSize="xl" textAlign="center" mb={4}>
@@ -141,20 +125,37 @@ export const App = () => {
       <Stack gap={4}>
         <Field.Root>
           <Field.Label htmlFor="detail">学習内容</Field.Label>
-          <Input id="detail" type="text" value={detail} onChange={handleClickDetail} placeholder="例: Reactの学習"/>
-          <Text fontSize="sm" color="gray.500">入力中: {detail}</Text>
+          <Input
+            id="detail"
+            type="text"
+            {...register("detail", {required: "内容の入力は必須です"})}
+            placeholder="例: Reactの学習"
+          />
+          <Text fontSize="sm" color="gray.500">入力中: {watch("detail")}</Text>
         </Field.Root>
         <Field.Root>
           <Field.Label htmlFor="time">学習時間 (時間)</Field.Label>
-          <Input id="time" type="number" value={time} onChange={handleClickTime} />
-          <Text fontSize="sm" color="gray.500">入力中: {time} 時間</Text>
+          <Input
+            id="time"
+            type="number"
+            {...register("time", {
+              valueAsNumber: true,
+              validate: validateStudyTime,
+            })}
+          />
+          <Text fontSize="sm" color="gray.500">入力中: {watch("time") || 0} 時間</Text>
         </Field.Root>
-        <PrimaryButton w="100px" p="10px" fontWeight="semibold" fontSize="0.95rem" onClick={onClickInsert}>登録</PrimaryButton>
+        <PrimaryButton w="100px" p="10px" fontWeight="semibold" fontSize="0.95rem" onClick={handleSubmit(onClickInsert)}>
+          登録
+        </PrimaryButton>
       </Stack>
 
-      <Box color="red.500" fontSize="sm" fontWeight="medium" minH="1.5rem" mt={2}>
-        {isError ? "⚠️ 入力されていない項目があります" : ""}
-      </Box>
+      {Object.keys(errors).length > 0 && (
+        <Box color="red.500" fontSize="sm" fontWeight="medium" mt={2}>
+          {errors.detail?.message && <Text>{errors.detail.message}</Text>}
+          {errors.time?.message && <Text>{errors.time.message}</Text>}
+        </Box>
+      )}
 
       <Heading as="h2" size="md" mt={6} mb={3} pb={2} borderBottom="2px solid" borderColor="gray.100">
         登録データ

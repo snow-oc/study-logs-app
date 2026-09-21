@@ -92,6 +92,6 @@ test('入力をしないで登録を押すとエラーが表示されること',
 
   await userEvent.click(button);
 
-  expect(await screen.findByText('⚠️ 入力されていない項目があります')).toBeInTheDocument();
+  expect(await screen.findByText('内容の入力は必須です')).toBeInTheDocument();
 
 })

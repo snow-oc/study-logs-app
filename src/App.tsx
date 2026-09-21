@@ -4,7 +4,7 @@ import { Loading } from "./components/Loading";
 import { memo } from "react";
 import { useMemo } from "react";
 import { useCallback } from "react";
-import type { StudyRecord } from "./types/db/study-record";
+import { StudyRecord } from "./types/db/study-record";
 import { PrimaryButton } from "./components/atoms/button/PrimaryButton";
 import { Box, Container, Field, Flex, Heading, HStack, Input, Stack, Text } from "@chakra-ui/react";
 import { DangerButton } from "./components/atoms/button/DangerButton";
@@ -39,7 +39,10 @@ export const App = () => {
     if (error) {
       console.log(error);
     } else {
-      setRecords(data as StudyRecord[]);
+      const recordList = data.map((item) => (
+        new StudyRecord(item.id, item.title, Number(item.time))
+      ));
+      setRecords(recordList);
     }
   }
 

@@ -40,9 +40,12 @@ test('フォームに学習内容と時間を入力して登録ボタンを押�
     </Provider>
   );
 
-  const detailField = screen.getByLabelText('学習内容');
-  const timeField = screen.getByLabelText('学習時間 (時間)');
-  const button = screen.getByRole('button', { name: '登録' });
+  // モーダル起動
+  await userEvent.click(screen.getByRole('button', {name: '新規登録' }));
+
+  const detailField = await screen.findByLabelText('学習内容');
+  const timeField = await screen.findByLabelText('学習時間 (時間)');
+  const button = await screen.findByRole('button', { name: '登録' });
 
   await userEvent.type(detailField, 'テスト');
   await userEvent.type(timeField, '5');
@@ -88,7 +91,10 @@ test('入力をしないで登録を押すとエラーが表示されること',
     </Provider>
   );
 
-  const button = screen.getByRole('button', { name: '登録' });
+  // モーダル起動
+  await userEvent.click(screen.getByRole('button', {name: '新規登録' }));
+
+  const button = await screen.findByRole('button', { name: '登録' });
 
   await userEvent.click(button);
 

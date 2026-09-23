@@ -8,7 +8,7 @@ import { StudyRecord } from "./types/db/study-record";
 import { PrimaryButton } from "./components/atoms/button/PrimaryButton";
 import { Box, Container, Flex, Heading, HStack, Stack, Text } from "@chakra-ui/react";
 import { DangerButton } from "./components/atoms/button/DangerButton";
-import { InsertModal } from "./components/organisms/InsertModal";
+import { RecordFormModal } from "./components/organisms/RecordFormModal";
 
 export const App = () => {
 
@@ -18,6 +18,8 @@ export const App = () => {
   const [isLoading, setIsLoading] = useState(false);
   // モーダル
   const [ open, setOpen ] = useState(false);
+  // 選択されたレコード
+  const [ selectedRecord, setSelectedRecord ] = useState<StudyRecord | null>(null);
 
   // 合計時間
   const totalTime = useMemo(() => {
@@ -76,12 +78,19 @@ export const App = () => {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [deleteRecord, fetchRecords, setIsLoading]);
 
   // 新規登録ボタンクリック
   const onClickInsertModal = useCallback(() => {
+    setSelectedRecord(null);
     setOpen(true);
-  }, []);
+  }, [setOpen]);
+
+  // 編集ボタンクリック
+  const onClickEdit = useCallback((record: StudyRecord) => {
+    setSelectedRecord(record);
+    setOpen(true);
+  }, [ setSelectedRecord, setOpen ]);
 
   return (
     <>
@@ -98,7 +107,7 @@ export const App = () => {
         </Heading>
 
         <Box>
-          {isLoading ? <Loading /> : <RecordList records={records} onClickDelete={onClickDelete} />}
+          {isLoading ? <Loading /> : <RecordList records={records} onClickDelete={onClickDelete} onClickEdit={onClickEdit} />}
         </Box>
 
         <Box
@@ -112,10 +121,14 @@ export const App = () => {
           合計時間: <Text as="span" fontSize="lg" color="#2563eb">{totalTime}</Text> 時間
         </Box>
       </Container>
-      <InsertModal
+      <RecordFormModal
         open={open}
-        onClose={() => setOpen(false)}
+        onClose={() => {
+          setOpen(false);
+          setSelectedRecord(null);
+        }}
         onSuccess={fetchRecords}
+        record={selectedRecord}
       />
     </>
   );
@@ -125,10 +138,11 @@ export const App = () => {
 type Props = {
   records: StudyRecord[];
   onClickDelete: (id: string) => void;
+  onClickEdit: (record: StudyRecord) => void;
 }
 
 const RecordList = memo((props: Props) => {
-  const { records, onClickDelete } = props;
+  const { records, onClickDelete, onClickEdit } = props;
   return (
     <Stack gap={2}>
       {records.map((record) => {
@@ -155,6 +169,7 @@ const RecordList = memo((props: Props) => {
               >
                 {record.time} 時間
               </Text>
+              <PrimaryButton px="10px" py="4px" fontSize="0.8rem" fontWeight="semibold" onClick={() => onClickEdit(record)}>編集</PrimaryButton>
               <DangerButton px="10px" py="4px" fontSize="0.8rem" fontWeight="semibold" onClick={() => onClickDelete(record.id)}>削除</DangerButton>
             </HStack>
           </Flex>

@@ -1,5 +1,5 @@
 import { Box, CloseButton, Dialog, Field, Input, Stack, Text } from "@chakra-ui/react";
-import { memo, type FC } from "react";
+import { memo, useEffect } from "react";
 import { PrimaryButton } from "../atoms/button/PrimaryButton";
 import { useForm } from "react-hook-form";
 import { validateStudyTime } from "@/utils/appValidation";
@@ -9,6 +9,7 @@ import type { StudyRecord } from "@/types/db/study-record";
 type Props = {
   open: boolean;
   onClose: () => void;
+  record: StudyRecord | null;
   onSuccess: () => Promise<void>;
 }
 
@@ -17,16 +18,19 @@ type FormInputs = {
   time: number;
 };
 
-export const InsertModal: FC<Props> = memo((props) => {
+export const RecordFormModal = memo((props: Props) => {
 
-  const { open, onClose, onSuccess } = props;
+  const { open, onClose, onSuccess, record } = props;
+
   // 入力フォーム
-  const { register, handleSubmit, reset, formState: { errors }, watch } = useForm<FormInputs>({
-    defaultValues: {
-      detail: "",
-      time: 0,
-    }
-  });
+  const { register, handleSubmit, reset, formState: { errors }, watch } = useForm<FormInputs>();
+
+  useEffect(() => {
+    reset({
+      detail: record?.title || "",
+      time: record?.time || 0,
+    })
+  }, [record, reset ]);
 
   // データの登録
   const insertRecord = async (record: Pick<StudyRecord, "title" | "time">) => {
@@ -38,11 +42,27 @@ export const InsertModal: FC<Props> = memo((props) => {
     }
   }
 
-  // 登録ボタン押下
-  const onClickInsert = async (data: FormInputs) => {
+  // データの更新
+  const updateRecord = async (record: StudyRecord) => {
+    const { error } = await supabase
+      .from("study-record")
+      .update({ title: record.title, time: record.time })
+      .eq('id', record.id);
+    if (error) {
+      console.log(error);
+    }
+  }
+
+  // 送信ボタン押下(登録・更新)
+  const onSubmit = async (data: FormInputs) => {
     try {
-      // データ登録
-      await insertRecord({title: data.detail, time: data.time});
+      if (record) {
+        // データ更新
+        await updateRecord({id: record.id, title: data.detail, time: data.time});
+      } else {
+        // データ登録
+        await insertRecord({title: data.detail, time: data.time});
+      }
       // データ再取得
       await onSuccess();
       // フォームリセット
@@ -53,7 +73,6 @@ export const InsertModal: FC<Props> = memo((props) => {
       console.error("エラー:", error);
     }
   }
-
   return (
     <Dialog.Root open={open} onOpenChange={onClose}>
       <Dialog.Backdrop />
@@ -63,7 +82,7 @@ export const InsertModal: FC<Props> = memo((props) => {
             <CloseButton size="sm"></CloseButton>
           </Dialog.CloseTrigger>
           <Dialog.Header>
-            <Dialog.Title>学習記録の登録</Dialog.Title>
+            <Dialog.Title>学習記録入力フォーム</Dialog.Title>
           </Dialog.Header>
           <Dialog.Body>
             <>
@@ -90,8 +109,14 @@ export const InsertModal: FC<Props> = memo((props) => {
                   />
                   <Text fontSize="sm" color="gray.500">入力中: {watch("time") || 0} 時間</Text>
                 </Field.Root>
-                <PrimaryButton w="100px" p="10px" fontWeight="semibold" fontSize="0.95rem" onClick={handleSubmit(onClickInsert)}>
-                  登録
+                <PrimaryButton
+                  w="100px"
+                  p="10px"
+                  fontWeight="semibold"
+                  fontSize="0.95rem"
+                  onClick={handleSubmit(onSubmit)}
+                >
+                  {record ? "更新" : "登録"}
                 </PrimaryButton>
               </Stack>
 

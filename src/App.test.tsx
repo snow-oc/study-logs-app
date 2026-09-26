@@ -14,7 +14,9 @@ jest.mock('./supabaseClient', () => ({
 test('タイトルが表示されていること', () => {
 
   (supabase.from as jest.Mock).mockReturnValue({
-    select: jest.fn().mockResolvedValue({ data: [], error: null}),
+    select: jest.fn(() => ({
+      order: jest.fn().mockResolvedValue({ data: [], error: null}),
+    }))
   });
 
   render(
@@ -29,8 +31,12 @@ test('タイトルが表示されていること', () => {
 test('フォームに学習内容と時間を入力して登録ボタンを押すと新たに記録が追加されること', async () => {
 
   (supabase.from as jest.Mock).mockReturnValue({
-    select: jest.fn().mockResolvedValueOnce({ data: [], error: null })
-      .mockResolvedValueOnce({ data: [{id: '1', title: 'テスト', time: '5'}], error: null }),
+    select: jest.fn().mockReturnValueOnce({
+      order: jest.fn().mockResolvedValueOnce({ data: [], error: null }),
+    })
+    .mockReturnValueOnce({
+      order: jest.fn().mockResolvedValueOnce({ data: [{id: '1', title: 'テスト', time: '5'}], error: null }),
+    }),
     insert: jest.fn().mockResolvedValue({ error: null}),
   });
 
@@ -59,8 +65,12 @@ test('フォームに学習内容と時間を入力して登録ボタンを押�
 test('削除ボタンを押すと学習記録が削除される', async () => {
 
   (supabase.from as jest.Mock).mockReturnValue({
-    select: jest.fn().mockResolvedValueOnce({ data: [{id: '1', title: 'テスト', time: '5'}], error: null })
-      .mockResolvedValueOnce({ data: [], error: null}),
+    select: jest.fn().mockReturnValueOnce({
+      order: jest.fn().mockResolvedValueOnce({ data: [{id: '1', title: 'テスト', time: '5'}], error: null }),
+    })
+    .mockReturnValueOnce({
+      order: jest.fn().mockResolvedValueOnce({ data: [], error: null}),
+    }),
     delete: jest.fn(() => ({
       eq: jest.fn().mockResolvedValue({ error: null}),
     })),
@@ -82,7 +92,9 @@ test('削除ボタンを押すと学習記録が削除される', async () => {
 
 test('入力をしないで登録を押すとエラーが表示されること', async () => {
   (supabase.from as jest.Mock).mockReturnValue({
-    select: jest.fn().mockResolvedValue({ data: [], error: null}),
+    select: jest.fn(() => ({
+      order: jest.fn().mockResolvedValue({ data: [], error: null}),
+    }))
   });
 
   render(

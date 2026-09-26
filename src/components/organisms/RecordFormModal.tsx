@@ -3,14 +3,14 @@ import { memo, useEffect } from "react";
 import { PrimaryButton } from "../atoms/button/PrimaryButton";
 import { useForm } from "react-hook-form";
 import { validateStudyTime } from "@/utils/appValidation";
-import { supabase } from "@/supabaseClient";
 import type { StudyRecord } from "@/types/db/study-record";
 
 type Props = {
   open: boolean;
-  onClose: () => void;
   record: StudyRecord | null;
-  onSuccess: () => Promise<void>;
+  onClose: () => void;
+  onInsert: (record: Pick<StudyRecord, "title" | "time">) => Promise<void>;
+  onUpdate: (record: StudyRecord) => Promise<void>;
 }
 
 type FormInputs = {
@@ -20,7 +20,7 @@ type FormInputs = {
 
 export const RecordFormModal = memo((props: Props) => {
 
-  const { open, onClose, onSuccess, record } = props;
+  const { open, onClose, record, onInsert, onUpdate } = props;
 
   // 入力フォーム
   const { register, handleSubmit, reset, formState: { errors }, watch } = useForm<FormInputs>();
@@ -32,39 +32,16 @@ export const RecordFormModal = memo((props: Props) => {
     })
   }, [record, reset ]);
 
-  // データの登録
-  const insertRecord = async (record: Pick<StudyRecord, "title" | "time">) => {
-    const { error } = await supabase
-      .from("study-record")
-      .insert({ title: record.title, time: record.time });
-    if (error) {
-      console.log(error);
-    }
-  }
-
-  // データの更新
-  const updateRecord = async (record: StudyRecord) => {
-    const { error } = await supabase
-      .from("study-record")
-      .update({ title: record.title, time: record.time })
-      .eq('id', record.id);
-    if (error) {
-      console.log(error);
-    }
-  }
-
   // 送信ボタン押下(登録・更新)
   const onSubmit = async (data: FormInputs) => {
     try {
       if (record) {
         // データ更新
-        await updateRecord({id: record.id, title: data.detail, time: data.time});
+        await onUpdate({id: record.id, title: data.detail, time: data.time});
       } else {
         // データ登録
-        await insertRecord({title: data.detail, time: data.time});
+        await onInsert({title: data.detail, time: data.time});
       }
-      // データ再取得
-      await onSuccess();
       // フォームリセット
       reset({detail: "", time: 0});
       // モーダルを閉じる

@@ -25,6 +25,9 @@ jobs:
       # Reactアプリをビルド
       - name: Build Project
         run: npm run build
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
       # Firebase Hostingへデプロイ
       - name: Deploy to Firebase Hosting
         uses: w9jds/firebase-action@master

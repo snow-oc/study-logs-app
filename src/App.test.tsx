@@ -90,6 +90,50 @@ test('削除ボタンを押すと学習記録が削除される', async () => {
 
 });
 
+test('更新ボタンを押すと学習記録が更新される', async () => {
+
+  // モック
+  (supabase.from as jest.Mock).mockReturnValue({
+    select: jest.fn().mockReturnValueOnce({
+      order: jest.fn().mockResolvedValueOnce({ data: [{id: '1', title: 'テスト', time: '5'}], error: null }),
+    })
+    .mockReturnValueOnce({
+      order: jest.fn().mockResolvedValueOnce({ data: [{id: '1', title: 'テスト2', time: '8'}], error: null }),
+    }),
+    update: jest.fn(() => ({
+      eq: jest.fn().mockResolvedValue({error: null}),
+    })),
+
+  });
+
+  render(
+    <Provider>
+      <App />
+    </Provider>
+  );
+
+  // 編集ボタンクリック
+  const button = await screen.findByRole('button', { name: '編集' });
+  await userEvent.click(button);
+
+  // 学習内容編集
+  const detailField = await screen.findByLabelText('学習内容');
+  await userEvent.clear(detailField);
+  await userEvent.type(detailField, 'テスト2');
+
+  // 学習時間編集
+  const timeField = await screen.findByLabelText('学習時間 (時間)');
+  await userEvent.clear(timeField);
+  await userEvent.type(timeField, '8');
+
+  // 更新ボタンクリック
+  const updateButton = await screen.findByRole('button', { name: '更新' });
+  await userEvent.click(updateButton);
+
+  expect(await screen.findByText('テスト2')).toBeInTheDocument();
+
+});
+
 test('入力をしないで登録を押すとエラーが表示されること', async () => {
   (supabase.from as jest.Mock).mockReturnValue({
     select: jest.fn(() => ({
